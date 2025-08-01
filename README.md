@@ -4,13 +4,13 @@ A powerful CLI tool that converts Postman collections into complete API service 
 
 ## Features
 
-- 🚀 **One-command generation** - Convert entire Postman collections instantly
-- 📁 **Organized output** - Creates clean folder structure with one file per API group
-- 🔒 **Authentication support** - Automatically generates auth wrappers for secured APIs
-- 🎯 **Multiple clients** - Support for both Axios and Fetch API
-- 📝 **TypeScript ready** - Full TypeScript support with proper type annotations
-- ✨ **Prettier formatting** - All generated code is automatically formatted
-- 🛠️ **Interactive mode** - Choose options via CLI prompts or flags
+- **One-command generation** - Convert entire Postman collections instantly
+- **Organized output** - Creates clean folder structure with one file per API group
+- **Authentication support** - Automatically generates auth wrappers for secured APIs
+- **Multiple clients** - Support for both Axios and Fetch API
+- **TypeScript ready** - Full TypeScript support with proper type annotations
+- **Prettier formatting** - All generated code is automatically formatted
+- **Interactive mode** - Choose options via CLI prompts or flags
 
 ## Installation
 
