@@ -5,6 +5,26 @@ import {
   PostmanRequest,
 } from './types';
 
+// Helper function to check if URL contains URL-related placeholders
+function containsUrlPlaceholder(url: string): boolean {
+  const urlPatterns = [
+    /\{url\}/i,
+    /\{baseurl\}/i,
+    /\{base_url\}/i,
+    /\{URL\}/i,
+    /\{BASE_URL\}/i,
+    /\{BASEURL\}/i,
+    /\{\{url\}\}/i,
+    /\{\{baseurl\}\}/i,
+    /\{\{base_url\}\}/i,
+    /\{\{URL\}\}/i,
+    /\{\{BASE_URL\}\}/i,
+    /\{\{BASEURL\}\}/i,
+  ];
+
+  return urlPatterns.some(pattern => pattern.test(url));
+}
+
 export function generateApiFile(
   config: GeneratorConfig,
   folder: PostmanFolder,
@@ -543,6 +563,11 @@ export function generateRoutesFile(
 
     routes += `\n// ${folder.name} Routes\n`;
     folder.requests.forEach(request => {
+      // Skip routes that contain URL-related placeholders
+      if (containsUrlPlaceholder(request.url)) {
+        return;
+      }
+
       const routeName = generateFunctionName(request.name);
       let path = processUrl(request.url);
 
@@ -607,6 +632,11 @@ export {};
   let routeImports = '';
 
   authFolder.requests.forEach(request => {
+    // Skip requests that contain URL-related placeholders
+    if (containsUrlPlaceholder(request.url)) {
+      return;
+    }
+
     const functionName = generateFunctionName(request.name);
     const routeConstName = `${functionName.toUpperCase()}_ROUTE`;
     routeImports += `  ${routeConstName},\n`;
@@ -661,6 +691,11 @@ export function generateApiFunctionsFile(
   let routeImports = '';
 
   folder.requests.forEach(request => {
+    // Skip requests that contain URL-related placeholders
+    if (containsUrlPlaceholder(request.url)) {
+      return;
+    }
+
     const functionName = generateFunctionName(request.name);
     const routeConstName = `${functionName.toUpperCase()}_ROUTE`;
     routeImports += `  ${routeConstName},\n`;
@@ -764,11 +799,12 @@ function generateFunctionWithTryCatch(
     };
   } catch (error) {
     console.error('Error in ${functionName}:', error);
+    const errorObj = error as any;
     throw {
       data: null,
-      status: error.response?.status || 500,
-      statusText: error.response?.statusText || 'Internal Server Error',
-      message: error.message || 'An error occurred'
+      status: errorObj.response?.status || 500,
+      statusText: errorObj.response?.statusText || 'Internal Server Error',
+      message: errorObj.message || 'An error occurred'
     };
   }
 }`;
@@ -796,11 +832,12 @@ function generateFunctionWithTryCatch(
     };
   } catch (error) {
     console.error('Error in ${functionName}:', error);
+    const errorObj = error as any;
     throw {
       data: null,
-      status: error.status || 500,
-      statusText: error.statusText || 'Internal Server Error',
-      message: error.message || 'An error occurred'
+      status: errorObj.status || 500,
+      statusText: errorObj.statusText || 'Internal Server Error',
+      message: errorObj.message || 'An error occurred'
     };
   }
 }`;
