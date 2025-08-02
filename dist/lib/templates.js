@@ -26,6 +26,25 @@ function containsUrlPlaceholder(url) {
     ];
     return urlPatterns.some(pattern => pattern.test(url));
 }
+// Helper function to clean URL placeholders and make them usable
+function cleanUrlPlaceholders(url) {
+    return url
+        .replace(/\{\{url\}\}/gi, '')
+        .replace(/\{\{baseurl\}\}/gi, '')
+        .replace(/\{\{base_url\}\}/gi, '')
+        .replace(/\{\{URL\}\}/gi, '')
+        .replace(/\{\{BASE_URL\}\}/gi, '')
+        .replace(/\{\{BASEURL\}\}/gi, '')
+        .replace(/\{url\}/gi, '')
+        .replace(/\{baseurl\}/gi, '')
+        .replace(/\{base_url\}/gi, '')
+        .replace(/\{URL\}/gi, '')
+        .replace(/\{BASE_URL\}/gi, '')
+        .replace(/\{BASEURL\}/gi, '')
+        .replace(/\/+/g, '/') // Clean up multiple slashes
+        .replace(/^\/+/, '/') // Ensure starts with single slash
+        .replace(/\/+$/, ''); // Remove trailing slashes
+}
 function generateApiFile(config, folder, collection) {
     const isTypeScript = config.language === 'ts';
     const useAxios = config.httpClient === 'axios';
@@ -301,7 +320,15 @@ function extractPathParams(url) {
         .replace(/\{\{apiVersion\}\}/g, '');
     // Convert double braces to single braces for remaining parameters
     cleanUrl = cleanUrl.replace(/\{\{([^}]+)\}\}/g, '{$1}');
-    // Now extract single-brace parameters
+    // Clean URL placeholders that should not be treated as path parameters
+    cleanUrl = cleanUrl
+        .replace(/\{url\}/gi, '')
+        .replace(/\{baseurl\}/gi, '')
+        .replace(/\{base_url\}/gi, '')
+        .replace(/\{URL\}/gi, '')
+        .replace(/\{BASE_URL\}/gi, '')
+        .replace(/\{BASEURL\}/gi, '');
+    // Now extract single-brace parameters (only actual path parameters)
     const matches = cleanUrl.match(/\{([^}]+)\}/g);
     if (!matches)
         return [];
@@ -462,12 +489,12 @@ function generateRoutesFile(config, collection) {
             return;
         routes += `\n// ${folder.name} Routes\n`;
         folder.requests.forEach(request => {
-            // Skip routes that contain URL-related placeholders
-            if (containsUrlPlaceholder(request.url)) {
-                return;
-            }
             const routeName = generateFunctionName(request.name);
             let path = processUrl(request.url);
+            // Clean URL placeholders if they exist
+            if (containsUrlPlaceholder(request.url)) {
+                path = cleanUrlPlaceholders(path);
+            }
             // Clean up variable substitutions - remove {{base_url}} and {{baseUrl}}
             path = path
                 .replace(/\{\{base_url\}\}/g, '')
@@ -514,10 +541,6 @@ export {};
     let functions = '';
     let routeImports = '';
     authFolder.requests.forEach(request => {
-        // Skip requests that contain URL-related placeholders
-        if (containsUrlPlaceholder(request.url)) {
-            return;
-        }
         const functionName = generateFunctionName(request.name);
         const routeConstName = `${functionName.toUpperCase()}_ROUTE`;
         routeImports += `  ${routeConstName},\n`;
@@ -552,10 +575,6 @@ function generateApiFunctionsFile(config, folder, collection) {
     let functions = '';
     let routeImports = '';
     folder.requests.forEach(request => {
-        // Skip requests that contain URL-related placeholders
-        if (containsUrlPlaceholder(request.url)) {
-            return;
-        }
         const functionName = generateFunctionName(request.name);
         const routeConstName = `${functionName.toUpperCase()}_ROUTE`;
         routeImports += `  ${routeConstName},\n`;
